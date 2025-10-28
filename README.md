@@ -7,7 +7,6 @@ A powerful .NET web application that uses artificial intelligence to analyze vid
 - **Video Upload & URL Support**: Upload video files or provide video URLs
 - **AI-Powered Analysis**: Automatic object detection and action recognition
 - **Scene Summarization**: Intelligent scene description generation
-- **Real-time Results**: Instant analysis with detailed reports
 - **Responsive Design**: Works on desktop and mobile devices
 - **Modern UI**: Beautiful gradient design with smooth animations
 
@@ -16,8 +15,6 @@ A powerful .NET web application that uses artificial intelligence to analyze vid
 - **Backend**: ASP.NET Core MVC 8.0
 - **Frontend**: HTML5, CSS3, JavaScript, Bootstrap 5
 - **AI Integration**: Simulated AI service (easily extendable to real AI APIs)
-- **Architecture**: Clean architecture with service layer pattern
-- **Styling**: Custom CSS with gradient effects and animations
 
 ## 📦 Installation & Setup
 
@@ -44,10 +41,3 @@ A powerful .NET web application that uses artificial intelligence to analyze vid
 
 4. **Run the Application**
    - Press `F5` or click the "Run" button
-   - The application will open in your default browser
-
-#### Method 2: Using Command Line (Terminal)
-
-1. **Navigate to Project Directory**
-   ```bash
-   cd GenAI-Video-Analyzer
