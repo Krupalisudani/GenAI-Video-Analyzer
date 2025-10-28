@@ -1,0 +1,183 @@
+﻿@{
+    ViewData["Title"] = "GenAI Video Analyzer";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center mb-5">
+                <h1 class="display-4 mb-3">🎥 GenAI Video Analyzer 🤖</h1>
+                <p class="lead">Upload any video and our AI will detect objects, analyze actions, and summarize the scene</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-video me-2"></i>Video Analysis</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Option 1: Upload Video File</label>
+                        <input type="file" class="form-control" id="videoFile" accept="video/*">
+                        <div class="form-text">Supported formats: MP4, AVI, MOV, WMV</div>
+                    </div>
+
+                    <div class="text-center my-3">
+                        <strong>OR</strong>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Option 2: Enter Video URL</label>
+                        <input type="url" class="form-control" id="videoUrl" placeholder="https://example.com/video.mp4">
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success btn-lg" id="analyzeBtn" onclick="analyzeVideo()">
+                            <i class="fas fa-play-circle me-2"></i>Analyze Video
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loadingSection" class="text-center mt-4" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">AI is analyzing your video... This may take a few moments.</p>
+            </div>
+
+            <div id="resultSection" class="mt-4" style="display: none;">
+                <!-- Results will be displayed here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function analyzeVideo() {
+            const videoFile = document.getElementById('videoFile').files[0];
+            const videoUrl = document.getElementById('videoUrl').value;
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const loadingSection = document.getElementById('loadingSection');
+            const resultSection = document.getElementById('resultSection');
+
+            // Validate input
+            if (!videoFile && !videoUrl) {
+                alert('Please provide either a video file or URL');
+                return;
+            }
+
+            // Show loading, hide results
+            analyzeBtn.disabled = true;
+            loadingSection.style.display = 'block';
+            resultSection.style.display = 'none';
+
+            try {
+                const formData = new FormData();
+                if (videoFile) {
+                    formData.append('videoFile', videoFile);
+                }
+                if (videoUrl) {
+                    formData.append('videoUrl', videoUrl);
+                }
+
+                const response = await fetch('/Home/AnalyzeVideo', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayResults(result);
+                } else {
+                    throw new Error(result.error || 'Analysis failed');
+                }
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                analyzeBtn.disabled = false;
+                loadingSection.style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+            const resultSection = document.getElementById('resultSection');
+            const result = data.result;
+
+            resultSection.innerHTML = `
+                <div class="card shadow-lg border-success">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0"><i class="fas fa-check-circle me-2"></i>Analysis Complete</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0"><i class="fas fa-list me-2"></i>Detected Objects</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        ${result.detectedObjects.map(obj => 
+                                            `<span class="badge bg-primary me-2 mb-2">${obj}</span>`
+                                        ).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-running me-2"></i>Detected Actions</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        ${result.detectedActions.map(action => 
+                                            `<span class="badge bg-warning text-dark me-2 mb-2">${action}</span>`
+                                        ).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0"><i class="fas fa-file-alt me-2"></i>Scene Summary</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">${result.summary}</p>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h6 class="mb-0"><i class="fas fa-eye me-2"></i>Detailed Scene Description</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">${result.sceneDescription}</p>
+                                <small class="text-muted">Analyzed at: ${result.analysisTimestamp}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            resultSection.style.display = 'block';
+        }
+
+        function showError(message) {
+            const resultSection = document.getElementById('resultSection');
+            resultSection.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Analysis Failed</h4>
+                    <p>${message}</p>
+                    <hr>
+                    <p class="mb-0">Please try again with a different video or check your internet connection.</p>
+                </div>
+            `;
+            resultSection.style.display = 'block';
+        }
+    </script>
+}
